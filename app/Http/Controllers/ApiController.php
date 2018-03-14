@@ -71,18 +71,24 @@ class ApiController extends Controller
     		}
     	}
 
-    	session(['cart-products' => $sessionProducts]);
+    	session(['cart-products' => array_values($sessionProducts)]);
     	return 'odebráno';
     }
 
     public function getCart()
     {
     	$products = Session::get('cart-products', []);
+    	// dd($products);
     	$output = [
     		'products' => $products,
     		'summary' => $this->calcPrices($products)
     	];
     	return json_encode($output);
+    }
+
+    public function cartProductChangeAmount(Request $request)
+    {
+    	# code...
     }
 
     private function camelCaseProduct($product)
