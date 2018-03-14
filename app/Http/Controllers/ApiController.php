@@ -21,7 +21,7 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
-    public function cartProductAdd(Request $request)
+    public function cartProductAdd(Request $request) // TODO když se vlaží do košíku ten samý produkt ještě jednou, tak se cena nezvětší (každý produkt se prostě bere jako by tam byl pouze jednou)
     {
     	/* ======== */
     		$p = Product::find($request->id);
@@ -57,7 +57,11 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
-    public function cartProductRemove(Request $request)
+	// TODO dodělat funkci pro změnu množství v košíku
+	// jirka pošle: id produktu, množstí v košíku, id varianty
+	// já odešlu summary
+
+    public function cartProductRemove(Request $request) // smaže celý produkt v celkovém množství 
     {
     	$sessionProducts = Session::get('cart-products', []);
 
@@ -92,10 +96,13 @@ class ApiController extends Controller
     	foreach ($products as $product) {
     		$pIDs[] = $product['id'];
     	}
-    	$products = Product::whereIn('id', $pIDs)->get();
-    	$priceVAT = 0;
+    	$p = [];
     	foreach ($products as $product) {
-    		$priceVAT += $product->price_with_vat_for_customer;
+    		$p[] = Product::where('id', $pIDs)->first();
+    	}
+    	$priceVAT = 0;
+    	foreach ($p as $p2) {
+    		$priceVAT += $p2->price_with_vat_for_customer;
     	}
 
     	$price = $priceVAT * 0.79;
