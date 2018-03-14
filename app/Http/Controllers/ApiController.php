@@ -21,7 +21,7 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
-    public function cartProductAdd(Request $request) // TODO když se vlaží do košíku ten samý produkt ještě jednou, tak se cena nezvětší (každý produkt se prostě bere jako by tam byl pouze jednou)
+    public function cartProductAdd(Request $request)
     {
     	/* ======== */
     		$p = Product::find($request->id);
@@ -78,7 +78,11 @@ class ApiController extends Controller
     public function getCart()
     {
     	$products = Session::get('cart-products', []);
-    	return json_encode($products);
+    	$output = [
+    		'products' => $products,
+    		'summary' => $this->calcPrices($products)
+    	];
+    	return json_encode($output);
     }
 
     private function camelCaseProduct($product)
