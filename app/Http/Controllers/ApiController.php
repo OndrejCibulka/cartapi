@@ -90,7 +90,10 @@ class ApiController extends Controller
     	}
 
     	session(['cart-products' => array_values($sessionProducts)]);
-    	return 'odebráno';
+    	$output = [
+    		'summary' => $this->calcPrices($sessionProducts)
+    	];
+    	return json_encode($output);
     }
 
     public function getCart()
@@ -115,24 +118,13 @@ class ApiController extends Controller
     	$amount = 2;
 
     	$sessionProducts = Session::get('cart-products', []);
-    	$product = null;
 
-    	$newProducts = [];
 
-    	foreach ($sessionProducts as $sessionProduct) {
-    		if ($sessionProduct['productId'] == $productId && $sessionProduct['variantId'] == $variantId) {
-    			$product = $sessionProduct;
-    			break;
-    		} else {
-    			$newProducts[] = $sessionProduct;
+    	foreach ($sessionProducts as $key => $value) {
+    		if ($value['productId'] == $productId && $value['variantId'] == $variantId) {
+
     		}
     	}
-
-    	for ($i=0; $i < $amount; $i++) { 
-    		$newProducts[] = $product;
-    	}
-
-    	dd($newProducts);
     }
 
     private function camelCaseProduct($product)
