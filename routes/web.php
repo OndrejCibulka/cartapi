@@ -15,4 +15,5 @@ Route::prefix('api')->group(function () {
 	Route::get('cart/get', ['as' => 'apiCartGet', 'uses' => 'ApiController@getCart']);
 	Route::post('cart/product/add', ['as' => 'apiCartProductAdd', 'uses' => 'ApiController@cartProductAdd']);
 	Route::post('cart/product/remove', ['as' => 'apiCartProductRemove', 'uses' => 'ApiController@cartProductRemove']);
+	Route::get('cart/change/amount', ['as' => 'apiCartProductChangeAmount', 'uses' => 'ApiController@cartProductChangeAmount']);
 });

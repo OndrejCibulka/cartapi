@@ -37,6 +37,7 @@
 				<button type="submit">Odebrat z košíku</button>
 			</form>
 		</li>
+		<li><a href="{{route('apiCartProductChangeAmount')}}">Změnit počet</a></li>
 	</ul>
 </body>
 </html>

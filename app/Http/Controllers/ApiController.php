@@ -27,7 +27,7 @@ class ApiController extends Controller
     		$p = Product::find($request->id);
     		$productId = $p->product_id;
 	    	$variantId = $p->variant_id;
-	    	$amount = $p->amount;
+	    	$amount = 1;
     	/* ======== */
 
     	$output = [];
@@ -37,21 +37,38 @@ class ApiController extends Controller
 
     	$addedProduct = Product::where('product_id', $productId)->where('variant_id', $variantId)->first();
     	$sessionProducts = Session::get('cart-products', []);
-    	$sessionProducts[] = [
-			'id'          => $addedProduct->id,
-			'ordering'    => 1,
-			'productId'   => $addedProduct->product_id,
-			'code'        => $addedProduct->code,
-			'baseName'    => $addedProduct->complete_name,
-			'variantId'   => $addedProduct->variant_id,
-			'variantName' => $addedProduct->complete_name,
-			'amount'      => $amount,
-			'amountUnit'  => $addedProduct->amount_unit
-    	];
+
+    	$isInCart = false;
+    	$sessionProduct = null;
+    	foreach ($sessionProducts as $key => $value) {
+    		if ($value['productId'] == $productId && $value['variantId'] == $variantId) {
+    			$value['amount']++;
+    			$sessionProducts[$key] = $value;
+    			$sessionProduct = $value;
+    			$isInCart = true;
+    			break;
+    		}
+    	}
+
+    	if (!$isInCart) {
+    		$sessionProduct = [
+				'id'          => $addedProduct->id,
+				'ordering'    => 1,
+				'productId'   => $addedProduct->product_id,
+				'code'        => $addedProduct->code,
+				'baseName'    => $addedProduct->complete_name,
+				'variantId'   => $addedProduct->variant_id,
+				'variantName' => $addedProduct->complete_name,
+				'amount'      => $amount,
+				'amountUnit'  => $addedProduct->amount_unit
+	    	];
+	    	$sessionProducts[] = $sessionProduct;
+    	}
+
     	session(['cart-products' => $sessionProducts]);
     	$prices = $this->calcPrices($sessionProducts);
 
-    	$output['product'] = end($sessionProducts);
+    	$output['product'] = $sessionProduct;
     	$output['summary'] = $prices;
 
     	return json_encode($output);
@@ -61,13 +78,14 @@ class ApiController extends Controller
 	// jirka pošle: id produktu, množstí v košíku, id varianty
 	// já odešlu summary
 
-    public function cartProductRemove(Request $request) // smaže celý produkt v celkovém množství 
+    public function cartProductRemove(Request $request)
     {
     	$sessionProducts = Session::get('cart-products', []);
 
     	foreach ($sessionProducts as $key => $value) {
     		if ($value['id'] == $request->id) {
     			unset($sessionProducts[$key]);
+    			// TODO: breaknout
     		}
     	}
 
@@ -88,7 +106,33 @@ class ApiController extends Controller
 
     public function cartProductChangeAmount(Request $request)
     {
-    	# code...
+    	// $productId = $request->productId;
+    	// $variantId = $request->variantId;
+    	// $amount = $request->amount;
+
+		$productId = 1;
+    	$variantId = 1;
+    	$amount = 2;
+
+    	$sessionProducts = Session::get('cart-products', []);
+    	$product = null;
+
+    	$newProducts = [];
+
+    	foreach ($sessionProducts as $sessionProduct) {
+    		if ($sessionProduct['productId'] == $productId && $sessionProduct['variantId'] == $variantId) {
+    			$product = $sessionProduct;
+    			break;
+    		} else {
+    			$newProducts[] = $sessionProduct;
+    		}
+    	}
+
+    	for ($i=0; $i < $amount; $i++) { 
+    		$newProducts[] = $product;
+    	}
+
+    	dd($newProducts);
     }
 
     private function camelCaseProduct($product)
