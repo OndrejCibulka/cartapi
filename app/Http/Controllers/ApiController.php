@@ -74,10 +74,6 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
-	// TODO dodělat funkci pro změnu množství v košíku
-	// jirka pošle: id produktu, množstí v košíku, id varianty
-	// já odešlu summary
-
     public function cartProductRemove(Request $request)
     {
     	$sessionProducts = Session::get('cart-products', []);
@@ -107,6 +103,9 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
+    // TODO dodělat funkci pro změnu množství v košíku
+    // jirka pošle: id produktu, množstí v košíku, id varianty
+    // já odešlu summary
     public function cartProductChangeAmount(Request $request)
     {
     	// $productId = $request->productId;
@@ -119,12 +118,19 @@ class ApiController extends Controller
 
     	$sessionProducts = Session::get('cart-products', []);
 
-
     	foreach ($sessionProducts as $key => $value) {
     		if ($value['productId'] == $productId && $value['variantId'] == $variantId) {
-
+    			$value['amount'] = $amount;
+    			$sessionProducts[$key] = $value;
+    			break;
     		}
     	}
+
+    	session(['cart-products' => $sessionProducts]);
+    	$output = [
+    		'summary' => $this->calcPrices($sessionProducts)
+    	];
+    	return json_encode($output);
     }
 
     private function camelCaseProduct($product)
@@ -138,23 +144,16 @@ class ApiController extends Controller
 
     private function calcPrices($products)
     {
-    	$pIDs = [];
-    	foreach ($products as $product) {
-    		$pIDs[] = $product['id'];
-    	}
-    	$p = [];
-    	foreach ($products as $product) {
-    		$p[] = Product::where('id', $pIDs)->first();
-    	}
     	$priceVAT = 0;
-    	foreach ($p as $p2) {
-    		$priceVAT += $p2->price_with_vat_for_customer;
+    	foreach ($products as $product) {
+    		$p = Product::find($product['id']);
+    		$priceVAT += $p->price_with_vat_for_customer * $product['amount'];
     	}
 
     	$price = $priceVAT * 0.79;
 
     	$prices = [
-			'price'         => round($price, 2), // cena bez dpi
+			'price'         => round($price, 2), // cena bez dph
 			'priceVAT'      => round($priceVAT, 2), // cena s dph
 			'taxPrecentage' => 21, // procenta daně
 			'taxValue'      => round($priceVAT - $price, 2)   // cena daně 
