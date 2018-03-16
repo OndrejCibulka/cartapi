@@ -103,9 +103,6 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
-    // TODO dodělat funkci pro změnu množství v košíku
-    // jirka pošle: id produktu, množstí v košíku, id varianty
-    // já odešlu summary
     public function cartProductChangeAmount(Request $request)
     {
     	// $productId = $request->productId;
