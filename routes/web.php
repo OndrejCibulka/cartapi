@@ -1,5 +1,8 @@
 <?php
 
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: *");
+
 Route::get('/', function () {
 	$products = App\Product::all();
     return view('index', [

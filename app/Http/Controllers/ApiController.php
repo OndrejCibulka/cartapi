@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Input;
 
 class ApiController extends Controller
 {
@@ -13,7 +14,7 @@ class ApiController extends Controller
     	$products = Product::all()->toArray();
     	$output = [];
 
-    	foreach ($products as $product) 
+    	foreach ($products as $product)
 		{
     		$output[] = $this->camelCaseProduct($product);
     	}
@@ -24,20 +25,19 @@ class ApiController extends Controller
     public function cartProductAdd(Request $request)
     {
     	/* ======== */
-    		$p = Product::find($request->id);
-    		$productId = $p->product_id;
-	    	$variantId = $p->variant_id;
-	    	$amount = 1;
+    		// $p = Product::find($request->id);
+    		// $productId = $p->product_id;
+	    	// $variantId = $p->variant_id;
+	    	// $amount = 1;
     	/* ======== */
 
     	$output = [];
-    	// $productId = $request->productId;
-    	// $variantId = $request->variantId;
-    	// $amount = $request->amount;
+    	$productId = $request->productId;
+    	$variantId = $request->variantId;
+    	$amount = $request->amount; // jestli se množstí přidává, nebo nastaví
 
     	$addedProduct = Product::where('product_id', $productId)->where('variant_id', $variantId)->first();
     	$sessionProducts = Session::get('cart-products', []);
-
     	$isInCart = false;
     	$sessionProduct = null;
     	foreach ($sessionProducts as $key => $value) {
@@ -54,13 +54,15 @@ class ApiController extends Controller
     		$sessionProduct = [
 				'id'          => $addedProduct->id,
 				'ordering'    => 1,
-				'productId'   => $addedProduct->product_id,
+				'productId'   => intval($addedProduct->product_id),
 				'code'        => $addedProduct->code,
 				'baseName'    => $addedProduct->complete_name,
 				'variantId'   => $addedProduct->variant_id,
 				'variantName' => $addedProduct->complete_name,
 				'amount'      => $amount,
-				'amountUnit'  => $addedProduct->amount_unit
+				'amountUnit'  => $addedProduct->amount_unit,
+                'price'       => $addedProduct->price_with_vat_for_customer,
+                'priceVAT'    => $addedProduct->price_with_vat_for_customer * 0.79,
 	    	];
 	    	$sessionProducts[] = $sessionProduct;
     	}
@@ -71,6 +73,7 @@ class ApiController extends Controller
     	$output['product'] = $sessionProduct;
     	$output['summary'] = $prices;
 
+        \Log::info(json_encode($output));
     	return json_encode($output);
     }
 
@@ -153,7 +156,7 @@ class ApiController extends Controller
 			'price'         => round($price, 2), // cena bez dph
 			'priceVAT'      => round($priceVAT, 2), // cena s dph
 			'taxPrecentage' => 21, // procenta daně
-			'taxValue'      => round($priceVAT - $price, 2)   // cena daně 
+			'taxValue'      => round($priceVAT - $price, 2)   // cena daně
     	];
 
     	return $prices;
