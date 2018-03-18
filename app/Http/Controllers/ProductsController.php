@@ -3,62 +3,180 @@
 namespace App\Http\Controllers;
 
 use App\Product;
+use App\Variant;
+use App\Voucher;
 use Illuminate\Http\Request;
 
 class ProductsController extends Controller
 {
     public function uploadProducts()
     {
-    	Product::truncate();
+    	Product::where('id', '>', 0)->delete();
 
     	Product::create([
-    		'product_id'                  => '1',
-    		'variant_id'                  => '1',
-    		'complete_name'               => 'iPhone 7 32GB',
-    		'code'                        => 'code-iphone-7-32gb',
-    		'image'                       => '',
-    		'producer_name'               => 'Applce Inc.',
-    		'producer_home_page_url'      => 'https://www.apple.com/',
-    		'description_summary'         => 'Hledáte-li dokonalý designerský kousek, je vaše hledání u konce. iPhone 7 je totiž majstrštyk, který jen tak něco nepřekoná. Jeho luxusní vzhled nelze přehlédnout, stejně jako výbavu, na které společnost Apple rozhodně nešetřila. Celkem snadno se tak iPhone 7 stává klenotem, který se zavděčí i těm nejnáročnějším uživatelům. Okouzlí vás nepřekonatelným výkonem, neskutečně živým displejem, špičkovými stereo reproduktory a fotoaparáty, které nemají konkurenci. K tomu všemu je tento model voděodolný a jeho baterie má výdrž, jakou jste u iPhonů dosud nezažili. Pokrok zkrátka nelze zastavit a iPhone 7 je toho jasným důkazem!',
-    		'amount_step'                 => 1,
-    		'amount_unit'                 => 'pieces',
-    		'price_with_vat_for_customer' => '15390',
-    		'sale_sticker'                => true,
-    		'new_sticker'                 => false
+            'id'                     => 1,
+            'name'                   => 'iPhone 7',
+            'url'                    => 'iphone-7',
+            'code'                   => '0001',
+            'image'                  => '',
+            'producer_name'          => 'Applce Inc.',
+            'producer_home_page_url' => 'https://www.apple.com/',
+            'description_summary'    => 'Hledáte-li dokonalý designerský kousek, je vaše hledání u konce. iPhone 7 je totiž majstrštyk, který jen tak něco nepřekoná.',
+            'amount_step'            => 1,
+            'amount_unit'            => 'pieces',
     	]);
 
-    	Product::create([
-    		'product_id'                  => '1',
-    		'variant_id'                  => '2',
-    		'complete_name'               => 'iPhone 7 128GB',
-    		'code'                        => 'code-iphone-7-128gb',
-    		'image'                       => '',
-    		'producer_name'               => 'Applce Inc.',
-    		'producer_home_page_url'      => 'https://www.apple.com/',
-    		'description_summary'         => 'Hledáte-li dokonalý designerský kousek, je vaše hledání u konce. iPhone 7 je totiž majstrštyk, který jen tak něco nepřekoná. Jeho luxusní vzhled nelze přehlédnout, stejně jako výbavu, na které společnost Apple rozhodně nešetřila. Celkem snadno se tak iPhone 7 stává klenotem, který se zavděčí i těm nejnáročnějším uživatelům. Okouzlí vás nepřekonatelným výkonem, neskutečně živým displejem, špičkovými stereo reproduktory a fotoaparáty, které nemají konkurenci. K tomu všemu je tento model voděodolný a jeho baterie má výdrž, jakou jste u iPhonů dosud nezažili. Pokrok zkrátka nelze zastavit a iPhone 7 je toho jasným důkazem!',
-    		'amount_step'                 => 1,
-    		'amount_unit'                 => 'pieces',
-    		'price_with_vat_for_customer' => '18390',
-    		'sale_sticker'                => true,
-    		'new_sticker'                 => false
-    	]);
+        Variant::create([
+            'id'                          => 1,
+            'variant_id'                  => 1,
+            'product_id'                  => 1,
+            'name'                        => '32 GB',
+            'price_with_vat_for_customer' => 15390,
+            'stock_count'                 => 5,
+        ]);
 
-    	Product::create([
-    		'product_id'                  => '1',
-    		'variant_id'                  => '3',
-    		'complete_name'               => 'iPhone 7 256GB',
-    		'code'                        => 'code-iphone-7-256gb',
-    		'image'                       => '',
-    		'producer_name'               => 'Applce Inc.',
-    		'producer_home_page_url'      => 'https://www.apple.com/',
-    		'description_summary'         => 'Hledáte-li dokonalý designerský kousek, je vaše hledání u konce. iPhone 7 je totiž majstrštyk, který jen tak něco nepřekoná. Jeho luxusní vzhled nelze přehlédnout, stejně jako výbavu, na které společnost Apple rozhodně nešetřila. Celkem snadno se tak iPhone 7 stává klenotem, který se zavděčí i těm nejnáročnějším uživatelům. Okouzlí vás nepřekonatelným výkonem, neskutečně živým displejem, špičkovými stereo reproduktory a fotoaparáty, které nemají konkurenci. K tomu všemu je tento model voděodolný a jeho baterie má výdrž, jakou jste u iPhonů dosud nezažili. Pokrok zkrátka nelze zastavit a iPhone 7 je toho jasným důkazem!',
-    		'amount_step'                 => 1,
-    		'amount_unit'                 => 'pieces',
-    		'price_with_vat_for_customer' => '19390',
-    		'sale_sticker'                => true,
-    		'new_sticker'                 => false
-    	]);
+        Variant::create([
+            'id'                          => 2,
+            'variant_id'                  => 2,
+            'product_id'                  => 1,
+            'name'                        => '128 GB',
+            'price_with_vat_for_customer' => 18390,
+            'stock_count'                 => 5,
+        ]);
 
+        Variant::create([
+            'id'                          => 3,
+            'variant_id'                  => 3,
+            'product_id'                  => 1,
+            'name'                        => '256 GB',
+            'price_with_vat_for_customer' => 20390,
+            'stock_count'                 => 5,
+        ]);
+
+
+
+
+
+        Product::create([
+            'id'                     => 2,
+            'name'                   => 'iPhone 8',
+            'url'                    => 'iphone-8',
+            'code'                   => '0002',
+            'image'                  => '',
+            'producer_name'          => 'Applce Inc.',
+            'producer_home_page_url' => 'https://www.apple.com/',
+            'description_summary'    => 'Hledáte-li dokonalý designerský kousek, je vaše hledání u konce. iPhone 7 je totiž majstrštyk, který jen tak něco nepřekoná.',
+            'amount_step'            => 1,
+            'amount_unit'            => 'pieces',
+        ]);
+
+        Variant::create([
+            'id'                          => 4,
+            'variant_id'                  => 1,
+            'product_id'                  => 2,
+            'name'                        => '32 GB',
+            'price_with_vat_for_customer' => 16390,
+            'stock_count'                 => 5,
+        ]);
+
+        Variant::create([
+            'id'                          => 5,
+            'variant_id'                  => 2,
+            'product_id'                  => 2,
+            'name'                        => '128 GB',
+            'price_with_vat_for_customer' => 19390,
+            'stock_count'                 => 5,
+        ]);
+
+        Variant::create([
+            'id'                          => 6,
+            'variant_id'                  => 3,
+            'product_id'                  => 2,
+            'name'                        => '256 GB',
+            'price_with_vat_for_customer' => 21390,
+            'stock_count'                 => 5,
+        ]);
+
+
+
+
+
+
+        Product::create([
+            'id'                     => 3,
+            'name'                   => 'iPhone X',
+            'url'                    => 'iphone-x',
+            'code'                   => '0003',
+            'image'                  => '',
+            'producer_name'          => 'Applce Inc.',
+            'producer_home_page_url' => 'https://www.apple.com/',
+            'description_summary'    => 'Hledáte-li dokonalý designerský kousek, je vaše hledání u konce. iPhone 7 je totiž majstrštyk, který jen tak něco nepřekoná.',
+            'amount_step'            => 1,
+            'amount_unit'            => 'pieces',
+        ]);
+
+        Variant::create([
+            'id'                          => 7,
+            'variant_id'                  => 1,
+            'product_id'                  => 3,
+            'name'                        => '32 GB',
+            'price_with_vat_for_customer' => 17390,
+            'stock_count'                 => 5,
+        ]);
+
+        Variant::create([
+            'id'                          => 8,
+            'variant_id'                  => 2,
+            'product_id'                  => 3,
+            'name'                        => '128 GB',
+            'price_with_vat_for_customer' => 20390,
+            'stock_count'                 => 5,
+        ]);
+
+        Variant::create([
+            'id'                          => 9,
+            'variant_id'                  => 3,
+            'product_id'                  => 3,
+            'name'                        => '256 GB',
+            'price_with_vat_for_customer' => 22390,
+            'stock_count'                 => 5,
+        ]);
+
+
+
+        Voucher::where('id','>','0')->delete();
+
+        Voucher::create([
+            'id'             => 1,
+            'code'           => 'SLEVA10',
+            'discount_value' => 10,
+        ]);
+
+        Voucher::create([
+            'id'             => 2,
+            'code'           => 'SLEVA20',
+            'discount_value' => 20,
+        ]);
+
+        Voucher::create([
+            'id'             => 3,
+            'code'           => 'SLEVA30',
+            'discount_value' => 30,
+        ]);
+
+        Voucher::create([
+            'id'             => 4,
+            'code'           => 'SLEVA40',
+            'discount_value' => 40,
+        ]);
+
+        Voucher::create([
+            'id'             => 5,
+            'code'           => 'SLEVA50',
+            'discount_value' => 50,
+        ]);
+
+    	
     	return 'Nahráno, vraťte se zpět';
     }
 }

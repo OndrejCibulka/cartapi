@@ -3,46 +3,93 @@
 namespace App\Http\Controllers;
 
 use App\Product;
+use App\Variant;
+use App\Voucher;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Session;
 
 class ApiController extends Controller
 {
-    public function getProducts()
+    public function getProducts() // DONE
     {
-    	$products = Product::all()->toArray();
+    	$products = Product::all();
     	$output = [];
 
-    	foreach ($products as $product)
+    	foreach ($products as $p)
 		{
-    		$output[] = $this->camelCaseProduct($product);
+            $v = Variant::where('product_id', $p->id)->first();
+            $priceVAT = $v->price_with_vat_for_customer;
+    		$output[] = [
+                'productId'          => $p->id,
+                'productName'        => $p->name,
+                'url'                => $p->url,
+                'descriptionSummary' => $p->description_summary,
+                'image'              => $p->image,
+                'price'              => $this->calcPriceWithoutVat($priceVAT),
+                'priceVAT'           => $priceVAT,
+                'stockCount'         => $v->stock_count,
+            ];
     	}
 
     	return json_encode($output);
     }
 
-    public function cartProductAdd(Request $request)
+    public function getProductDetail(Request $request) // DONE
     {
-    	/* ======== */
-    		// $p = Product::find($request->id);
-    		// $productId = $p->product_id;
-	    	// $variantId = $p->variant_id;
-	    	// $amount = 1;
-    	/* ======== */
+        // $productId = $request->productId;
 
-    	$output = [];
-    	$productId = $request->productId;
-    	$variantId = $request->variantId;
-    	$amount = $request->amount; // jestli se množstí přidává, nebo nastaví
+        $productId = 1;
 
-    	$addedProduct = Product::where('product_id', $productId)->where('variant_id', $variantId)->first();
+        $p = Product::find($productId);
+        $vs = Variant::where('product_id', $productId)->get();
+
+        $output = [
+            'product' => [
+                'productId'           => $p->id,
+                'productName'         => $p->name,
+                'url'                 => $p->url,
+                'descriptionSummary'  => $p->description_summary,
+                'code'                => $p->code,
+                'producerName'        => $p->producer_name,
+                'producerHomePageUrl' => $p->producer_home_page_url,
+                'image'               => $p->image,
+            ],
+            'variants' => [],
+        ];
+
+        foreach ($vs as $v) {
+            $output['variants'][] = [
+                'variantId'   => $v->variant_id,
+                'variantname' => $v->name,
+                'price'       => $this->calcPriceWithoutVat($v->price_with_vat_for_customer),
+                'priceVAT'    => $v->price_with_vat_for_customer,
+                'stockCount'  => $v->stock_count,
+            ];
+        }
+
+        return json_encode($output);
+    }
+
+    public function cartProductAdd(Request $request) // DONE
+    {
+		$productId = 1;
+    	$variantId = 1;
+    	$amount = 1;
+
+    	// $output = [];
+    	// $productId = $request->productId;
+    	// $variantId = $request->variantId;
+    	// $amount = $request->amount; // jestli se množstí přidává, nebo nastaví
+
+    	$addedProduct = Product::find($productId);
+        $addedVariant = Variant::where('product_id', $productId)->where('variant_id', $variantId)->first();
     	$sessionProducts = Session::get('cart-products', []);
     	$isInCart = false;
     	$sessionProduct = null;
     	foreach ($sessionProducts as $key => $value) {
     		if ($value['productId'] == $productId && $value['variantId'] == $variantId) {
-    			$value['amount']++;
+    			$value['amount'] += $amount;
     			$sessionProducts[$key] = $value;
     			$sessionProduct = $value;
     			$isInCart = true;
@@ -52,17 +99,17 @@ class ApiController extends Controller
 
     	if (!$isInCart) {
     		$sessionProduct = [
-				'id'          => $addedProduct->id,
 				'ordering'    => 1,
-				'productId'   => intval($addedProduct->product_id),
-				'code'        => $addedProduct->code,
-				'baseName'    => $addedProduct->complete_name,
-				'variantId'   => $addedProduct->variant_id,
-				'variantName' => $addedProduct->complete_name,
+                'productId'   => intval($addedProduct->id),
+				'variantId'   => $addedVariant->variant_id,
+                'code'        => $addedProduct->code,
+                'productName' => $addedProduct->name,
+				'variantName' => $addedVariant->name,
 				'amount'      => $amount,
 				'amountUnit'  => $addedProduct->amount_unit,
-                'price'       => $addedProduct->price_with_vat_for_customer,
-                'priceVAT'    => $addedProduct->price_with_vat_for_customer * 0.79,
+                'price'       => $addedVariant->price_with_vat_for_customer,
+                'priceVAT'    => $this->calcPriceWithoutVat($addedVariant->price_with_vat_for_customer),
+                'stockCount'  => $addedVariant->stock_count
 	    	];
 	    	$sessionProducts[] = $sessionProduct;
     	}
@@ -77,14 +124,16 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
-    public function cartProductRemove(Request $request)
+    public function cartProductRemove(Request $request) // DONE
     {
+        $productId = 1;
+        $variantId = 1;
+
     	$sessionProducts = Session::get('cart-products', []);
 
     	foreach ($sessionProducts as $key => $value) {
-    		if ($value['id'] == $request->id) {
+    		if ($value['productId'] == $productId && $value['variantId'] == $variantId) {
     			unset($sessionProducts[$key]);
-    			// TODO: breaknout
     		}
     	}
 
@@ -95,10 +144,9 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
-    public function getCart()
+    public function getCart() // DONE
     {
     	$products = Session::get('cart-products', []);
-    	// dd($products);
     	$output = [
     		'products' => $products,
     		'summary' => $this->calcPrices($products)
@@ -106,7 +154,7 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
-    public function cartProductChangeAmount(Request $request)
+    public function cartProductChangeAmount(Request $request) // DONE
     {
     	// $productId = $request->productId;
     	// $variantId = $request->variantId;
@@ -133,6 +181,43 @@ class ApiController extends Controller
     	return json_encode($output);
     }
 
+    public function cartVoucherApply(Request $request) // DONE
+    {
+        $voucherCode = 'SLEVA50';
+
+        $voucher = Voucher::where('code', $voucherCode)->first();
+
+        if ($voucher) {
+            $sessionVoucher = [
+                'code' => $voucherCode,
+                'discount_value' => $voucher->discount_value,
+            ];
+            session(['cart-voucher' => $sessionVoucher]);
+            
+            $output = [
+                'summary' => $this->calcPrices(Session::get('cart-products', []))
+            ];
+
+            return json_encode($output);
+        } else {
+            http_response_code(422);
+            $output = [
+                'error' => 'Voucher není validní'
+            ];
+        }
+    }
+
+    public function cartVoucherRemove() // DONE
+    {
+        session(['cart-voucher' => []]);
+        
+        $output = [
+            'summary' => $this->calcPrices(Session::get('cart-products', []))
+        ];
+
+        return json_encode($output);
+    }
+
     private function camelCaseProduct($product)
     {
     	$p = [];
@@ -146,11 +231,17 @@ class ApiController extends Controller
     {
     	$priceVAT = 0;
     	foreach ($products as $product) {
-    		$p = Product::find($product['id']);
-    		$priceVAT += $p->price_with_vat_for_customer * $product['amount'];
+            $v = Variant::where('variant_id', $product['variantId'])->where('product_id', $product['productId'])->first();
+    		$priceVAT += $v->price_with_vat_for_customer * $product['amount'];
     	}
 
-    	$price = $priceVAT * 0.79;
+        $discount = Session::get('cart-voucher', []);
+
+        if (isset($discount['discount_value'])) {
+            $priceVAT = $priceVAT * ((100 - $discount['discount_value']) / 100);
+        }
+
+    	$price = $this->calcPriceWithoutVat($priceVAT);
 
     	$prices = [
 			'price'         => round($price, 2), // cena bez dph
@@ -160,5 +251,10 @@ class ApiController extends Controller
     	];
 
     	return $prices;
+    }
+
+    private function calcPriceWithoutVat($price)
+    {
+        return $price * 0.79;
     }
 }
