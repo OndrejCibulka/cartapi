@@ -319,6 +319,8 @@ class ComposerStaticInit14695a0509354c7bb200ec1a501a7a0c
     );
 
     public static $classMap = array (
+        'App\\Carrier' => __DIR__ . '/../..' . '/app/Carrier.php',
+        'App\\CarrierPlace' => __DIR__ . '/../..' . '/app/CarrierPlace.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Controllers\\ApiController' => __DIR__ . '/../..' . '/app/Http/Controllers/ApiController.php',
@@ -342,6 +344,7 @@ class ComposerStaticInit14695a0509354c7bb200ec1a501a7a0c
         'App\\Providers\\RouteServiceProvider' => __DIR__ . '/../..' . '/app/Providers/RouteServiceProvider.php',
         'App\\User' => __DIR__ . '/../..' . '/app/User.php',
         'App\\Variant' => __DIR__ . '/../..' . '/app/Variant.php',
+        'App\\Voucher' => __DIR__ . '/../..' . '/app/Voucher.php',
         'Carbon\\Carbon' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Carbon.php',
         'Carbon\\CarbonInterval' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/CarbonInterval.php',
         'Carbon\\Exceptions\\InvalidDateException' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Exceptions/InvalidDateException.php',
