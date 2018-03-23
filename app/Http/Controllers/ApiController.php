@@ -419,7 +419,7 @@ class ApiController extends Controller
 		$priceVAT = 0;
 		foreach ($products as $product) {
 			$v = Variant::where('variant_id', $product['variantId'])->where('product_id', $product['productId'])->first();
-			$priceVAT += $v->price_with_vat_for_customer * $product['amount'];
+			$priceVAT += intval($v->price_with_vat_for_customer) * intval($product['amount']);
 		}
 
 		$discount = Cache::get('cart-voucher', []);
