@@ -27,7 +27,7 @@ class ApiController extends Controller
 				'url'                => $p->url,
 				'descriptionSummary' => $p->description_summary,
 				'image'              => $p->image,
-				'price'              => $this->calcPriceWithoutVat($priceVAT) . ' Kč',
+				'price'              => $this->calcPriceWithoutVat($priceVAT) . ' Kč bez DPH',
 				'priceVAT'           => $priceVAT . ' Kč',
 				'stockCount'         => $v->stock_count,
 			];
@@ -61,7 +61,7 @@ class ApiController extends Controller
 			$output['variants'][] = [
 				'variantId'   => $v->variant_id,
 				'variantName' => $v->name,
-				'price'       => $this->calcPriceWithoutVat($v->price_with_vat_for_customer) . ' Kč',
+				'price'       => $this->calcPriceWithoutVat($v->price_with_vat_for_customer) . ' Kč bez DPH',
 				'priceVAT'    => $v->price_with_vat_for_customer . ' Kč',
 				'stockCount'  => $v->stock_count,
 			];
@@ -107,8 +107,8 @@ class ApiController extends Controller
 				'image'       => $addedProduct->image,
 				'amount'      => $amount,
 				'amountUnit'  => $addedProduct->amount_unit,
-				'price'       => round($addedVariant->price_with_vat_for_customer, 2),
-				'priceVAT'    => round($this->calcPriceWithoutVat($addedVariant->price_with_vat_for_customer), 2),
+				'priceVAT'    => round($addedVariant->price_with_vat_for_customer, 2),
+				'price'       => round($this->calcPriceWithoutVat($addedVariant->price_with_vat_for_customer), 2),
 				'stockCount'  => round($addedVariant->stock_count, 2),
 			];
 			$sessionProducts[] = $sessionProduct;
@@ -117,7 +117,7 @@ class ApiController extends Controller
 		Cache::put('cart-products', $sessionProducts, 120);
 		$prices = $this->calcPrices($sessionProducts);
 
-		$sessionProduct['price'] .= ' Kč';
+		$sessionProduct['price'] .= ' Kč bez DPH';
 		$sessionProduct['priceVAT'] .= ' Kč';
 		$output['product'] = $sessionProduct;
 		$output['summary'] = $prices;
@@ -151,7 +151,7 @@ class ApiController extends Controller
 		$products = Cache::get('cart-products', []);
 
 		foreach ($products as $key => $value) {
-			$value['price'] .= ' Kč';
+			$value['price'] .= ' Kč bez DPH';
 			$value['priceVAT'] .= ' Kč';
 			$products[$key] = $value;
 		}
@@ -180,7 +180,7 @@ class ApiController extends Controller
 			if ($value['productId'] == $productId && $value['variantId'] == $variantId) {
 				$value['amount'] = $amount;
 				$sessionProducts[$key] = $value;
-				$value['price'] = ($value['price'] * $amount) . ' Kč';
+				$value['price'] = ($value['price'] * $amount) . ' Kč bez DPH';
 				$value['priceVAT'] = ($value['priceVAT'] * $amount) . ' Kč';
 				$sessionProduct = $value;
 				break;
@@ -329,14 +329,14 @@ class ApiController extends Controller
 
 	public function getCartSummary()
 	{
-		$cartCarrier = Cache::get('cart-carrier');
+		$cartCarrier = Cache::get('cart-carrier', []);
 		$c = Carrier::find($cartCarrier['carrierId']);
 		$cp = CarrierPlace::where('carrier_id', $cartCarrier['carrierId'])->where('place_id', $cartCarrier['placeId'])->first();
 
-		$cartPayment = Cache::get('cart-payment');
+		$cartPayment = Cache::get('cart-payment', []);
 		$p = Payment::find($cartPayment['paymentId']);
 
-		$cu = Cache::get('cart-customer');
+		$cu = Cache::get('cart-customer', []);
 		\Log::info('z cache:'.json_encode($cu));
 
 		$shippingInfo = [];
@@ -397,6 +397,9 @@ class ApiController extends Controller
 				'link' => '/dekujeme.php',
 			];
 			Cache::put('cart-products', [], 120);
+			Cache::put('cart-carrier', [], 120);
+			Cache::put('cart-payment', [], 120);
+
 			return json_encode($output);
 		} else {
 			http_response_code(422);
@@ -426,6 +429,16 @@ class ApiController extends Controller
 
 		if (isset($discount['discount_value'])) {
 			$priceVAT = $priceVAT * ((100 - $discount['discount_value']) / 100);
+		}
+
+		$carrier = Cache::get('cart-carrier', []);
+		if(isset($carrier['carrierId'])){
+			$priceVAT += intval(Carrier::find($carrier['carrierId'])->price);
+		}
+
+		$payment = Cache::get('cart-payment', []);
+		if(isset($payment['paymentId'])){
+			$priceVAT += intval(Payment::find($payment['paymentId'])->price);
 		}
 
 		$price = $this->calcPriceWithoutVat($priceVAT);
